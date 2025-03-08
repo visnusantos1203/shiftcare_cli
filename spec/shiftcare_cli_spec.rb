@@ -18,6 +18,21 @@ RSpec.describe ShiftcareCli do
     allow(JSON).to receive(:parse).and_return(json_data)
   end
 
+  describe "#duplicate_emails" do
+    it "detects duplicate emails" do
+      expect { cli.duplicate_emails }.to output(/alice@example.com/).to_stdout
+    end
+
+    it "shows no duplicates if all emails are unique" do
+      allow(JSON).to receive(:parse).and_return([
+        { "full_name" => "Eve Adams", "email" => "eve@example.com" },
+        { "full_name" => "Frank White", "email" => "frank@example.com" }
+      ])
+      
+      expect { cli.duplicate_emails }.to output(/No duplicate emails found/).to_stdout
+    end
+  end
+
   describe "#search" do
     it "returns clients with names partially matching the query" do
       expect { cli.search("Alice") }.to output(/Alice Johnson/).to_stdout
