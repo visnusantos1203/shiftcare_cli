@@ -7,10 +7,11 @@ RSpec.describe ShiftcareCli do
 
   before do
     json_data = [
-      { "full_name" => "Alice Johnson", "email" => "alice@example.com" },
+      { "full_name" => "Juan Dela Cruz", "email" => "juan@example.com" },
       { "full_name" => "Bob Smith", "email" => "bob@example.com" },
       { "full_name" => "Charlie Appleton", "email" => "charlie@example.com" },
-      { "full_name" => "David Doe", "email" => "alice@example.com" } # Duplicate email
+      { "full_name" => nil, "email" => "no_name@example.com" }, # Missing full_names
+      { "full_name" => "David Doe", "email" => "juan@example.com" } # Duplicate email
     ]
 
     # Stub file reading and parsing
@@ -20,7 +21,7 @@ RSpec.describe ShiftcareCli do
 
   describe "#duplicate_emails" do
     it "detects duplicate emails" do
-      expect { cli.duplicate_emails }.to output(/alice@example.com/).to_stdout
+      expect { cli.duplicate_emails }.to output(/juan@example.com/).to_stdout
     end
 
     it "shows no duplicates if all emails are unique" do
@@ -35,15 +36,23 @@ RSpec.describe ShiftcareCli do
 
   describe "#search" do
     it "returns clients with names partially matching the query" do
-      expect { cli.search("Alice") }.to output(/Alice Johnson/).to_stdout
+      expect { cli.search("Juan") }.to output(/Juan Dela Cruz/).to_stdout
     end
 
     it "performs case-insensitive matching" do
-      expect { cli.search("alice") }.to output(/Alice Johnson/).to_stdout
+      expect { cli.search("juAN") }.to output(/Juan Dela Cruz/).to_stdout
     end
 
     it "returns no matches when there are none" do
       expect { cli.search("Zach") }.to output(/No clients found/).to_stdout
+    end
+
+    it "escapes regex special characters in search query" do
+      expect { cli.search("J*an") }.to output(/No clients found/).to_stdout
+    end
+
+    it "handles missing full_name values gracefully" do
+      expect { cli.search("no_name") }.not_to raise_error
     end
   end
 end
